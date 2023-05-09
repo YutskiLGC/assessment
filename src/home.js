@@ -1,79 +1,87 @@
 function getTotalBooksCount(books) {
-  return books.length;
+  let totalBooks = 0;
+  books.forEach(function (point) {
+    totalBooks += 1;
+  });
+  return totalBooks;
 }
-function getTotalAccountsCount(accounts) {
-  return accounts.length;
-}
-function getBooksBorrowedCount(books) {
-  // Filter the books array to only include those that have not been returned
-  const borrowedBooks = books.filter((book) => !book.borrows[0].returned);
 
-  // Return the length of the filtered array
-  return borrowedBooks.length;
+
+
+function getTotalAccountsCount(accounts) {
+  let totalAccounts = 0;
+  accounts.forEach(function (account) {
+    totalAccounts +=1;
+  });
+  return totalAccounts;
 }
+
+
+
+function getBooksBorrowedCount(books) {
+  let result = books.filter((book) => book.borrows[0].returned === false );
+  return result.length;
+}
+
+
 
 function getMostCommonGenres(books) {
-  // Step 1: Create an object to store the count of each genre
-  const genreCount = books.reduce((acc, book) => {
-    if (acc[book.genre]) {
-      acc[book.genre]++;
-    } else {
-      acc[book.genre] = 1;
-    }
-    return acc;
-  }, {});
-
-  // Step 2: Convert the object to an array of objects with name and count keys
-  const genres = [];
-  for (let genre in genreCount) {
-    genres.push({ name: genre, count: genreCount[genre] });
-  }
-
-  // Step 3: Sort the array by count in descending order and return the top five genres
-  return genres
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-}
-function getMostPopularBooks(books) {
-  // Create an array to hold book objects with their borrow counts
-  const bookCounts = [];
-
-  // Iterate over the books array and count the number of borrows for each book
-  for (let i = 0; i < books.length; i++) {
-    const book = books[i];
-    const count = book.borrows.length;
-    const bookObj = { name: book.title, count: count };
-    bookCounts.push(bookObj);
-  }
-
-  // Sort the bookCounts array by the borrow count
-  bookCounts.sort((book1, book2) => book2.count - book1.count);
-
-  // Return the first five elements of the sorted bookCounts array
-  return bookCounts.slice(0, 5);
-}
-function getMostPopularAuthors(books, authors) {
-  const authorMap = {};
+  // return ordered list of most common genres //
+  // limit list to top five //
+  let result = []
+  let genres = {}
   books.forEach((book) => {
-    const author = authors.find((a) => a.id === book.authorId);
-    if (author) {
-      const authorName = `${author.name.first} ${author.name.last}`;
-      if (authorMap[authorName]) {
-        authorMap[authorName] += book.borrows.length;
-      } else {
-        authorMap[authorName] = book.borrows.length;
-      }
+    if (genres[book.genre]) {
+      genres[book.genre]++
+    } else {
+      genres[book.genre] = 1;
     }
-  });
-  const authorList = Object.keys(authorMap).map((author) => ({
-    name: author,
-    count: authorMap[author],
-  }));
-  const sortedList = authorList.sort((authorA, authorB) =>
-    authorA.count < authorB.count ? 1 : -1
-  );
-  return sortedList.slice(0, 5);
+  })
+  for (let genre in genres) {
+    result.push({name: genre, count: genres[genre]})
+  }
+  return result.sort((genreA, genreB) => (genreA.count > genreB.count ? -1 : 1)).slice(0,5)
 }
+
+
+
+function getMostPopularBooks(books) {
+  return books.map(book => {
+    return {
+      name: book.title,
+      count: book.borrows.length
+    }
+  }).sort((bookA, bookB) => bookB.count - bookA.count).slice(0,5)
+}
+
+
+
+function getMostPopularAuthors(books, authors) {
+  // return ordered list of most popular authors & limit to top five //
+  // create new array for final result
+   let result = []
+   // loop through authors
+   authors.forEach((author) => {
+    // filter authors by ones that match author.id
+    let bookAuth = books.filter((book) => book.authorId === author.id)
+    // add how many times books were borrowed
+    let bookAuthBorrows = bookAuth.reduce((borrowTot, book) => borrowTot + book.borrows.length, 0)
+    // push final result into result array
+    result.push ({name: author.name.first + " " + author.name.last, count: bookAuthBorrows})
+
+   })
+   // sort results from most to least and slice down to top five results
+   return result.sort((authorA, authorB) => (authorA.count < authorB.count ? 1 : -1)).slice(0,5)
+
+
+}
+
+
+
+   
+
+    
+
 
 
 module.exports = {
